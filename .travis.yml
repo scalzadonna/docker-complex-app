@@ -1,0 +1,22 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker: build -t sscalzadonna/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true sscalzadonna/react-test npm test
+
+after_success:
+  - docker build -t sscalzadonna/multi-client ./client
+  - docker build -t sscalzadonna/multi-nginx ./nginx
+  - docker build -t sscalzadonna/multi-server ./server
+  - docker build -t sscalzadonna/multi-worker ./worker
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push sscalzadonna/multi-client
+  - docker push sscalzadonna/multi-nginx
+  - docker push sscalzadonna/multi-server
+  - docker push sscalzadonna/multi-worker
